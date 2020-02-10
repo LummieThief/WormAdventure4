@@ -28,6 +28,8 @@ public class WormMove : MonoBehaviour
 	private Vector3 buttPosition;
 
 	public GameObject cameraRig;
+	public float rotFlipOffset = 30;
+	private bool walkForward = true;
 	//private HingeJoint hinge;
 
 	// Start is called before the first frame update
@@ -125,13 +127,24 @@ public class WormMove : MonoBehaviour
 	{
 
 		float moveY = Input.GetAxis("Vertical") * Mathf.Abs(Input.GetAxisRaw("Vertical")) * moveSpeed * Time.deltaTime;
+
+		//Camera direction change
 		float cameraRot = cameraRig.transform.eulerAngles.y;
 		if (cameraRot > 180)
 		{
 			cameraRot -= 360;
 		}
 		Debug.Log(cameraRot);
-		if (Mathf.Abs(cameraRot) <= 90)
+		if (Mathf.Abs(cameraRot) <= 90 - rotFlipOffset)
+		{
+			walkForward = true;
+		}
+		else if (Mathf.Abs(cameraRot) >= 90 + rotFlipOffset)
+		{
+			walkForward = false;
+		}
+
+		if (walkForward)
 		{
 			rb.AddRelativeTorque(new Vector3(moveY, 0, 0), ForceMode.Impulse);
 		}
@@ -163,6 +176,7 @@ public class WormMove : MonoBehaviour
 		prevRope.transform.localScale = new Vector3(xScale, transform.localScale.y, xScale);
 		prevRope.GetComponent<Rigidbody>().velocity = storedVelocity;
 		prevRope.GetComponent<MeshRenderer>().enabled = false;
+		prevRope.GetComponent<BoxCollider>().enabled = false;
 		gameObject.AddComponent<FixedJoint>().connectedBody = prevRope.GetComponent<Rigidbody>();
 		//the middle segments of the rope
 		for (int i = 0; i <= segments; i++)
